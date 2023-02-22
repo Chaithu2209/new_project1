@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/Chaithu2209/new_project1.git'
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                sh 'python.py build'
+            }
+        }
+        
+        stage('Unit Tests') {
+            steps {
+                sh 'python -m unittest discover'
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh 'sonar-scanner'
+                }
+            }
+        }
+        
+        stage('Upload Artifact') {
+            steps {
+                withCredentials([file(credentialsId: 'my-creds', variable: 'ARTIFACT')]) {
+                    sh 'curl -u username:password -T $ARTIFACT http://my.artifact.repo.com'
+                }
+            }
+        }
+    }
+}
